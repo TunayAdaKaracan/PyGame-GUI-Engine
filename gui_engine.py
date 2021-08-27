@@ -6,6 +6,8 @@
 #  \_____|\____/|____|   |______|_| |_|\__, |_|_| |_|\___|
 #                                      __/ |
 #                                     |___/
+# Made By Shkryoav And Arctic Fox
+# Giving Credits Will Help Us So Much
 # Version: 1.0.0 | Alpha
 import pygame
 
@@ -131,7 +133,7 @@ class ImageButton:
 class SysText:
     def __init__(self, x, y, font_name, font_size, text, color=(0,0,0), background_color=None, **kwargs):
         self.font = pygame.font.SysFont(font_name, font_size)
-        self.text = text
+        self.text = text.split("\n")
         self.pos = (x, y)
         self.color = color
         self.background_color = background_color
@@ -143,15 +145,28 @@ class SysText:
         return f"<SysText x={self.pos[0]} y={self.pos[1]} color={self.color} text={self.text}>"
 
     def draw(self, surface):
-        if self.background_color == None:
-            render = self.font.render(self.text, self.anti_allias, self.color)
+        # Changed In Version 1.1
+        #
+        #if self.background_color == None:
+        #    render = self.font.render(self.text, self.anti_allias, self.color)
+        #else:
+        #    render = self.font.render(self.text, self.anti_allias, self.color, self.background_color)
+        #if self.transparent:
+        #    render.convert_alpha()
+        #if self.max_width != 0 and render.get_width() > self.max_width:
+        #    render = render.subsurface(render.get_rect(w=self.max_width))
+        #surface.blit(render, self.pos)
+        line_movement = 0
+        if self.background_color is not None:
+            for line in self.text:
+                surface.blit(self.font.render(line, self.anti_allias, self.color, self.background_color),
+                             (self.pos[0], self.pos[1] + line_movement))
+                line_movement += self.font_size + 2
         else:
-            render = self.font.render(self.text, self.anti_allias, self.color, self.background_color)
-        if self.transparent:
-            render.convert_alpha()
-        if self.max_width != 0 and render.get_width() > self.max_width:
-            render = render.subsurface(render.get_rect(w=self.max_width))
-        surface.blit(render, self.pos)
+            for line in self.text:
+                surface.blit(self.font.render(line, self.anti_allias, self.color),
+                             (self.pos[0], self.pos[1] + line_movement))
+                line_movement += self.font_size + 2
 
     def change_font(self, font_name, font_size):
         self.font = pygame.font.SysFont(font_name, font_size)
@@ -203,3 +218,77 @@ class HorizontalSlider:
                     self.fill_percent = 0.0
 
         self._fill_box.w = self.fill_percent * self._empty_box.w
+
+
+class TextInput:
+    def __init__(self, x, y, w, h, font_name, size, color, **kwargs):
+        self.rect = pygame.Rect(x, y, w, h)
+        self.font = pygame.font.SysFont(font_name, size)
+        self.color = color
+        self.delete_after_max = kwargs.get("delete_after_max") or False
+        self.scroll_after_max = kwargs.get("scroll_after_max") or False
+        self.background_color = kwargs.get("background_color") or None
+        self.text = ""
+        self._focus = False
+        self._key_pressed = False
+
+    def draw(self, surface):
+        self.update()
+        if self.background_color is not None:
+            pygame.draw.rect(surface, self.background_color, self.rect)
+        if self.text == "":
+            return {"focus": self._focus, "text": self.text}
+        text_surface = self.font.render(self.text, False, self.color)
+        if self.scroll_after_max and text_surface.get_width() > self.rect.w:
+            text_surface = text_surface.subsurface(text_surface.get_rect(x=text_surface.get_width()-self.rect.w, w=self.rect.w))
+        elif self.delete_after_max and text_surface.get_rect().w > self.rect.w:
+            text_surface = text_surface.subsurface(text_surface.get_rect(w=self.rect.w))
+        surface.blit(text_surface, self.rect)
+        return {"focus": self._focus, "text": self.text}
+
+    def update(self):
+        mouse_pos = pygame.mouse.get_pos()
+        buttons = pygame.mouse.get_pressed(3)
+        if self.rect.collidepoint(mouse_pos) and buttons[0]:
+            self._focus = True
+        elif self._focus and buttons[0] and not self.rect.collidepoint(mouse_pos):
+            self._focus = False
+        keys = pygame.key.get_pressed()
+        if self._focus:
+            if not self._key_pressed:
+                if keys[pygame.K_q]: self.text += "q"
+                if keys[pygame.K_w]: self.text += "w"
+                if keys[pygame.K_e]: self.text += "e"
+                if keys[pygame.K_r]: self.text += "r"
+                if keys[pygame.K_t]: self.text += "t"
+                if keys[pygame.K_y]: self.text += "y"
+                if keys[pygame.K_u]: self.text += "u"
+                if keys[pygame.K_o]: self.text += "o"
+                if keys[pygame.K_p]: self.text += "p"
+                if keys[pygame.K_a]: self.text += "a"
+                if keys[pygame.K_s]: self.text += "s"
+                if keys[pygame.K_d]: self.text += "d"
+                if keys[pygame.K_f]: self.text += "f"
+                if keys[pygame.K_g]: self.text += "g"
+                if keys[pygame.K_h]: self.text += "h"
+                if keys[pygame.K_j]: self.text += "j"
+                if keys[pygame.K_k]: self.text += "k"
+                if keys[pygame.K_l]: self.text += "l"
+                if keys[pygame.K_i]: self.text += "i"
+                if keys[pygame.K_z]: self.text += "z"
+                if keys[pygame.K_x]: self.text += "x"
+                if keys[pygame.K_c]: self.text += "c"
+                if keys[pygame.K_v]: self.text += "v"
+                if keys[pygame.K_b]: self.text += "b"
+                if keys[pygame.K_n]: self.text += "n"
+                if keys[pygame.K_m]: self.text += "m"
+                if keys[pygame.K_SPACE]: self.text += " "
+                if keys[pygame.K_RETURN] or keys[pygame.K_ESCAPE]:
+                    self._key_pressed = False
+                    self._focus = False
+                    return
+                if keys[pygame.K_BACKSPACE]:
+                    self.text = self.text[:-1]
+                self._key_pressed = True
+        if not any(keys):
+            self._key_pressed = False

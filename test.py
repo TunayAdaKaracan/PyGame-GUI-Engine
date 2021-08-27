@@ -1,5 +1,5 @@
 import pygame
-from gui_engine import GUI, Box, BoxButton, SysText, HorizontalSlider
+from gui_engine import GUI, Box, BoxButton, SysText, HorizontalSlider, TextInput
 
 pygame.init()
 
@@ -9,8 +9,9 @@ pygame.display.set_caption("GUI Engine Test Window")
 gui = GUI()
 main_background = Box(800, 800, 0, 0, (30, 30, 30))
 gui.add_element(main_background, -9999)
-test_slider = HorizontalSlider(150, 150, 120, 5, (255, 0, 0), (0, 0, 255), Box(10, 10, 150, 150, (0, 0, 0), 0, 5))
-gui.add_element(test_slider, 99999)
+
+text_input = TextInput(0, 0, 150, 30, "Comic Sans MS", 20, (0, 0, 0), background_color=(255, 255, 255), scroll_after_max =True)
+gui.add_element(text_input)
 
 while True:
     screen.fill((0, 0, 0))
@@ -19,4 +20,5 @@ while True:
             pygame.quit()
             break
     data = gui.draw(screen)
+    print(data)
     pygame.display.update()
