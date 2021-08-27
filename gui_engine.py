@@ -8,7 +8,8 @@
 #                                     |___/
 # Made By Shkryoav And Arctic Fox
 # Giving Credits Will Help Us So Much
-# Version: 1.0.0 | Alpha
+# Version: 1.0.2 | Alpha
+import datetime
 import pygame
 
 
@@ -145,7 +146,7 @@ class SysText:
         return f"<SysText x={self.pos[0]} y={self.pos[1]} color={self.color} text={self.text}>"
 
     def draw(self, surface):
-        # Changed In Version 1.1
+        # Changed In Version 1.0.1
         #
         #if self.background_color == None:
         #    render = self.font.render(self.text, self.anti_allias, self.color)
@@ -231,6 +232,7 @@ class TextInput:
         self.text = ""
         self._focus = False
         self._key_pressed = False
+        self._press_timer = datetime.datetime.now()
 
     def draw(self, surface):
         self.update()
@@ -255,7 +257,7 @@ class TextInput:
             self._focus = False
         keys = pygame.key.get_pressed()
         if self._focus:
-            if not self._key_pressed:
+            if not self._key_pressed or (datetime.datetime.now() - self._press_timer).total_seconds() > 0.10:
                 if keys[pygame.K_q]: self.text += "q"
                 if keys[pygame.K_w]: self.text += "w"
                 if keys[pygame.K_e]: self.text += "e"
@@ -290,5 +292,7 @@ class TextInput:
                 if keys[pygame.K_BACKSPACE]:
                     self.text = self.text[:-1]
                 self._key_pressed = True
+                self._press_timer = datetime.datetime.now()
         if not any(keys):
             self._key_pressed = False
+            self._press_timer = datetime.datetime.now()
