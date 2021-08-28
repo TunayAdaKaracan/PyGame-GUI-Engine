@@ -8,7 +8,7 @@
 #                                     |___/
 # Made By Shkryoav And Arctic Fox
 # Giving Credits Will Help Us So Much
-# Version: 1.0.2 | Alpha
+# Version: 1.0.3 | Alpha
 import datetime
 import pygame
 
@@ -16,6 +16,7 @@ import pygame
 class GUI:
     def __init__(self):
         self.elements = []
+        self.hiddens = []
 
     def __str__(self):
         return f"<GUI items={len(self.elements)}>"
@@ -23,6 +24,8 @@ class GUI:
     def draw(self, surface):
         returns = {}
         for level, element in sorted(self.elements):
+            if element in self.hiddens:
+                continue
             data = element.draw(surface)
             if data is not None:
                 returns[element] = data
@@ -30,6 +33,14 @@ class GUI:
 
     def add_element(self, element, level=0):
         self.elements.append([level, element])
+
+    def hide_element(self, element):
+        if element not in self.hiddens:
+            self.hiddens.append(element)
+
+    def show_element(self, element):
+        if element in self.hiddens:
+            self.hiddens.remove(element)
 
 
 class Box:
@@ -58,6 +69,7 @@ class BoxButton:
         self._current_tick = 0
         self._click = False
         self._highlite = False
+        self.direct_call = None
 
     def __str__(self):
         return f"<BoxButton width={self.rect.w} height={self.rect.h} x={self.rect.x}" \
@@ -82,12 +94,15 @@ class BoxButton:
             self._click = False
 
         if self.rect.collidepoint(mouse_pos) and mouse_buttons[0]:
+            if self.direct_call is not None and self._click:
+                self.direct_call()
             self._click = True
             self._current_tick = self.ticks
         elif self.rect.collidepoint(mouse_pos):
             self._highlite = True
         else:
             self._highlite = False
+
 
 
 class ImageButton:
@@ -97,6 +112,7 @@ class ImageButton:
         self.click_image = ClickImage or Image.copy()
         self.highlite_image = HighliteImage
         self.ticks = kwargs.get("ticks") or 60
+        self.direct_call = None
         self._current_tick = 0
         self._click = False
         self._highlite = False
@@ -125,6 +141,8 @@ class ImageButton:
         if self.rect.collidepoint(mouse_pos) and mouse_buttons[0]:
             self._click = True
             self._current_tick = self.ticks
+            if self.direct_call is not None:
+                self.direct_call()
         elif self.rect.collidepoint(mouse_pos):
             self._highlite = True
         else:
@@ -146,17 +164,6 @@ class SysText:
         return f"<SysText x={self.pos[0]} y={self.pos[1]} color={self.color} text={self.text}>"
 
     def draw(self, surface):
-        # Changed In Version 1.0.1
-        #
-        #if self.background_color == None:
-        #    render = self.font.render(self.text, self.anti_allias, self.color)
-        #else:
-        #    render = self.font.render(self.text, self.anti_allias, self.color, self.background_color)
-        #if self.transparent:
-        #    render.convert_alpha()
-        #if self.max_width != 0 and render.get_width() > self.max_width:
-        #    render = render.subsurface(render.get_rect(w=self.max_width))
-        #surface.blit(render, self.pos)
         line_movement = 0
         if self.background_color is not None:
             for line in self.text:
@@ -243,7 +250,7 @@ class TextInput:
         text_surface = self.font.render(self.text, False, self.color)
         if self.scroll_after_max and text_surface.get_width() > self.rect.w:
             text_surface = text_surface.subsurface(text_surface.get_rect(x=text_surface.get_width()-self.rect.w, w=self.rect.w))
-        elif self.delete_after_max and text_surface.get_rect().w > self.rect.w:
+        elif self.delete_after_max and text_surface.get_width() > self.rect.w:
             text_surface = text_surface.subsurface(text_surface.get_rect(w=self.rect.w))
         surface.blit(text_surface, self.rect)
         return {"focus": self._focus, "text": self.text}
@@ -296,3 +303,60 @@ class TextInput:
         if not any(keys):
             self._key_pressed = False
             self._press_timer = datetime.datetime.now()
+
+
+class CheckBox:
+    def __init__(self, x, y, w, h, pixel_difference, empty_color, fill_color, **kwargs):
+        self.rect = pygame.Rect(x, y, w, h)
+        self.pixel_difference = pixel_difference
+        self.empty_color = empty_color
+        self.fill_color = fill_color
+        self._click = False
+        self._pressed = False
+        self.round = kwargs.get("round") or 0
+
+    def draw(self, surface):
+        self.update()
+        pygame.draw.rect(surface, self.empty_color, self.rect, 0, self.round)
+        if self._click:
+            fill_rect = self.rect.copy()
+            fill_rect.x += self.pixel_difference
+            fill_rect.y += self.pixel_difference
+            fill_rect.w -= 2 * self.pixel_difference
+            fill_rect.h -= 2 * self.pixel_difference
+            pygame.draw.rect(surface, self.fill_color, fill_rect, 0, self.round)
+        return {"click": self._click}
+
+    def update(self):
+        mouse_pos = pygame.mouse.get_pos()
+        buttons = pygame.mouse.get_pressed(3)
+        if self.rect.collidepoint(mouse_pos) and buttons[0] and not self._pressed:
+            self._click = not self._click
+            self._pressed = True
+        if not buttons[0]:
+            self._pressed = False
+
+
+class InvisibleButton:
+    def __init__(self, x, y, w, h):
+        self.rect = pygame.Rect(x, y, w, h)
+        self.direct_call = None
+        self._click = False
+        self._pressed = False
+
+    def draw(self, surface):
+        self.update()
+        return {"click": self._click}
+
+    def update(self):
+        mouse_pos = pygame.mouse.get_pos()
+        buttons = pygame.mouse.get_pressed(3)
+        if self.rect.collidepoint(mouse_pos) and buttons[0] and not self._pressed:
+            self._click = True
+            self._pressed = True
+            if self.direct_call is not None:
+                self.direct_call()
+
+        if not buttons[0]:
+            self._pressed = False
+            self._click = False
