@@ -104,13 +104,12 @@ class BoxButton:
             self._highlite = False
 
 
-
 class ImageButton:
-    def __init__(self, x, y, Image, ClickImage=None, HighliteImage=None, **kwargs):
-        self.image = Image.copy()
+    def __init__(self, x, y, image, clickimage=None, highliteimage=None, **kwargs):
+        self.image = image.copy()
         self.rect = self.image.get_rect(x=x, y=y)
-        self.click_image = ClickImage or Image.copy()
-        self.highlite_image = HighliteImage
+        self.click_image = clickimage or image.copy()
+        self.highlite_image = highliteimage
         self.ticks = kwargs.get("ticks") or 60
         self.direct_call = None
         self._current_tick = 0
@@ -150,8 +149,9 @@ class ImageButton:
 
 
 class SysText:
-    def __init__(self, x, y, font_name, font_size, text, color=(0,0,0), background_color=None, **kwargs):
+    def __init__(self, x, y, font_name, font_size, text, color=(0, 0, 0), background_color=None, **kwargs):
         self.font = pygame.font.SysFont(font_name, font_size)
+        self.font_size = font_size
         self.text = text.split("\n")
         self.pos = (x, y)
         self.color = color
@@ -249,7 +249,8 @@ class TextInput:
             return {"focus": self._focus, "text": self.text}
         text_surface = self.font.render(self.text, False, self.color)
         if self.scroll_after_max and text_surface.get_width() > self.rect.w:
-            text_surface = text_surface.subsurface(text_surface.get_rect(x=text_surface.get_width()-self.rect.w, w=self.rect.w))
+            sub_area = text_surface.get_rect(x=text_surface.get_width()-self.rect.w, w=self.rect.w)
+            text_surface = text_surface.subsurface(sub_area)
         elif self.delete_after_max and text_surface.get_width() > self.rect.w:
             text_surface = text_surface.subsurface(text_surface.get_rect(w=self.rect.w))
         surface.blit(text_surface, self.rect)
