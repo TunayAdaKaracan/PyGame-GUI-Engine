@@ -1,7 +1,7 @@
-#GUI Engine For Pygame
+# GUI Engine For Pygame
 *Version 1.0.3*
 
-###A GUI engine written using Python for the multimedia library Pygame. 
+### A GUI engine written using Python for the multimedia library Pygame. 
 
 
 ### Features:
